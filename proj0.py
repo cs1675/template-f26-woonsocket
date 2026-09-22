@@ -190,7 +190,7 @@ def run_iter(run_id, work_kind, data_prefix, client_args, wait_for_port):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("client_kind", choices=["closed-loop", "open-loop"])
+    parser.add_argument("client_kind", choices=["closed-loop", "open-loop-const", "open-loop-poisson"])
     parser.add_argument("work_kind", help="e.g. immediate, const:100, poisson:100, payload")
     parser.add_argument(
         "--value",
@@ -222,12 +222,13 @@ def main():
             )
     else:
         intervals = [args.value] if args.value is not None else OPEN_LOOP_INTERVALS_US
+        mode = "const" if args.client_kind == "open-loop-const" else "poisson"
         for interval in intervals:
             run_iter(
                 run_id,
                 args.work_kind,
                 f"open-loop-{interval}",
-                f"--interval-us {interval} --num-threads 1 --runtime-secs {CLIENT_RUNTIME_SECS}",
+                f"--interval-us {interval} --open-loop-mode {mode} --num-threads 1 --runtime-secs {CLIENT_RUNTIME_SECS}",
                 wait_for_port=True,
             )
 

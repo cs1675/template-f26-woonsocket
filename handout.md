@@ -76,7 +76,8 @@ To correctly perform the synthetic work, you must implement logic to, in a loop 
 
 Your **client** should provide the following command line options:
 
-- `--interval-us <INTERVAL_US>`: The interval of open loop request generation. Only sSpecify this argument to run an open loop client.
+- `--interval-us <INTERVAL_US>`: The interval of open loop request generation. Only specify this argument to run an open loop client.
+- `--open-loop-mode <OPEN_LOOP_MODE>`: The distribution of open loop request generation. Only specify this argument to run an open loop client. `<OPEN_LOOP_MODE>` should either be `const` or `poisson`.
 - `-n, --num-threads <NUM_THREADS>`: The number of clients (threads) your closed loop generator will start.
 - `-r, --runtime-secs <RUNTIME_SECS>`: How long the experiment should last for.
 - `-i, --ip <IP>`: Server IP.
