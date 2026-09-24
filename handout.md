@@ -74,23 +74,80 @@ To correctly perform the synthetic work, you must implement logic to, in a loop 
 
 #### CLI Behavior
 
-Your **client** should provide the following command line options:
+> To reduce the tedious parts of this project, we've updated the `woonsocket-work` crate to provide optional command-line argument parsing functionality.
 
-- `--interval-us <INTERVAL_US>`: The interval of open loop request generation. Only specify this argument to run an open loop client.
-- `--open-loop-mode <OPEN_LOOP_MODE>`: The distribution of open loop request generation. Only specify this argument to run an open loop client. `<OPEN_LOOP_MODE>` should either be `const` or `poisson`.
-- `-n, --num-threads <NUM_THREADS>`: The number of clients (threads) your closed loop generator will start.
-- `-r, --runtime-secs <RUNTIME_SECS>`: How long the experiment should last for.
-- `-i, --ip <IP>`: Server IP.
-- `-p, --port <PORT>`: Port that the server is listening on.
-- `-w, --work <WORK>`: The worktype that will be sent to the server from the client.
-- `-o, --outpath <OUTPATH>`: The directory in which to store the results
-- Example usage: `client --num-threads <NUM_THREADS> --runtime-secs <RUNTIME_SECS> --ip <IP> --port <PORT> --work <WORK> --outpath <OUTPATH>`
+Your **client** should provide the command line options in the following way:
+```
+your-woonsocket <REQUIRED_OPTIONS> <COMMAND> <MODE_SPECIFIC_OPTIONS>
+```
+
+`<REQUIRED_OPTIONS>`:
+- `-r, --runtime-secs <RUNTIME_SECS>`: Provided hint to the client for when to finish writing logs and exit before the runner script terminates this process
+- `--ip <IP> `: Server IP.
+- `-p, --port <PORT> `: Port that the server is listening on.
+- `-w, --work <WORK> `: The worktype that will be sent to the server from the client.
+- `-o, --outpath <OUTPATH>`: The directory in which to store the results. Only files written to this directory will be preserved; the runner script will delete all other files.
+
+`<COMMAND>`: Must be `closed-loop` or `open-loop`.
+
+`<MODE_SPECIFIC_OPTIONS>`:
+- If `<COMMAND>` is `closed-loop`:
+  - `-n, --num-threads <NUM_THREADS>`: The number of clients (threads) your closed loop generator will start.
+- If `<COMMAND>` is `open-loop`:
+  - `--interval-us <INTERVAL_US>`: Mean interval between request arrivals in microseconds.
+  - `--kind <KIND>`: Must be `constant` or `poisson`.
+
+<details><summary>Example Usage</summary>
+
+```
+Usage: your-woonsocket-client --runtime-secs <RUNTIME_SECS> --ip <IP> --port <PORT> --work <WORK> --outpath <OUTPATH> <COMMAND>
+
+Commands:
+  closed-loop  
+  open-loop    
+
+Options:
+  -r, --runtime-secs <RUNTIME_SECS>  Provided hint for when to finish writing logs and exit before the runner script terminates this process
+      --ip <IP>                      
+  -p, --port <PORT>                  
+  -w, --work <WORK>                  
+  -o, --outpath <OUTPATH>            Only files written to this directory will be preserved; the runner script will delete all other files
+```
+
+```
+Usage: your-woonsocket-client --runtime-secs <RUNTIME_SECS> --ip <IP> --port <PORT> --work <WORK> --outpath <OUTPATH> closed-loop --num-threads <NUM_THREADS>
+
+Options:
+  -n, --num-threads <NUM_THREADS>  
+```
+
+```
+Usage: your-woonsocket-client --runtime-secs <RUNTIME_SECS> --ip <IP> --port <PORT> --work <WORK> --outpath <OUTPATH> open-loop --interval-us <INTERVAL_US> --kind <KIND>
+
+Options:
+      --interval-us <INTERVAL_US>  Mean interval between request arrivals in microseconds
+      --kind <KIND>                [possible values: constant, poisson]
+```
+</details>
 
 Your **server** should provide the following command line options:
 
-- `-r, --runtime-secs <RUNTIME_SECS>`: How long the experiment should last for.
 - `-p, --port <PORT>`: Port the server is listening for connections.
-- Example usage: `server --port <PORT> --runtime-secs <RUNTIME_SECS>`
+- `-r, --runtime-secs <RUNTIME_SECS>`: Provided hint to the server for when to finish writing logs and exit before the runner script terminates this process
+- `-o, --outpath <OUTPATH>`: The directory in which to store the results. Only files written to this directory will be preserved; the runner script will delete all other files.
+
+<details><summary>Example Usage</summary>
+
+```
+Usage: your-woonsocket-server --port <PORT> --runtime-secs <RUNTIME_SECS> --outpath <OUTPATH>
+
+Options:
+  -p, --port <PORT>                  
+  -r, --runtime-secs <RUNTIME_SECS>  Provided hint for when to finish writing logs and exit before the runner script terminates this process
+  -o, --outpath <OUTPATH>            Only files written to this directory will be preserved; the runner script will delete all other files
+```
+
+</details>
 
 #### Work and Work Communications
 

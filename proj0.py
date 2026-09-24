@@ -108,7 +108,7 @@ def start_server(run_id, data_prefix):
         f"mkdir -p {out_dir} && "
         f"timeout {TIMEOUT_SECS} ./target/release/server --port {PORT} "
         f"--runtime-secs {SERVER_RUNTIME_SECS} "
-        f"> {out_dir}/server-stdout 2> {out_dir}/server-stderr"
+        f"--outpath {out_dir} > {out_dir}/server-stdout 2> {out_dir}/server-stderr"
     )
     print(f"Executing: {command}")
     run(
@@ -142,9 +142,9 @@ def run_client(run_id, work_kind, data_prefix, client_args):
         f"SERVER_IP=$(getent hosts {SERVER_NAME} | awk '{{print $1}}') && "
         f" timeout {TIMEOUT_SECS} "
         f" ./target/release/client "
+        f" --ip $SERVER_IP --port {PORT} "
+        f" --work {work_kind} --outpath {out_dir} "
         f" {client_args} "
-        f" --ip $SERVER_IP "
-        f" --work {work_kind} --port {PORT} --outpath {out_dir} "
         f" > {out_dir}/client-stdout 2> {out_dir}/client-stderr"
     )
     print(f"Executing: {command}")
@@ -190,7 +190,7 @@ def run_iter(run_id, work_kind, data_prefix, client_args, wait_for_port):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("client_kind", choices=["closed-loop", "open-loop-const", "open-loop-poisson"])
+    parser.add_argument("client_kind", choices=["closed-loop", "open-loop-constant", "open-loop-poisson"])
     parser.add_argument("work_kind", help="e.g. immediate, const:100, poisson:100, payload")
     parser.add_argument(
         "--value",
@@ -217,18 +217,18 @@ def main():
                 run_id,
                 args.work_kind,
                 f"closed-loop-{num_threads}",
-                f"--num-threads {num_threads} --runtime-secs {CLIENT_RUNTIME_SECS}",
+                f"--runtime-secs {CLIENT_RUNTIME_SECS} closed-loop --num-threads {num_threads} ",
                 wait_for_port=False,
             )
     else:
         intervals = [args.value] if args.value is not None else OPEN_LOOP_INTERVALS_US
-        mode = "const" if args.client_kind == "open-loop-const" else "poisson"
+        kind = "constant" if args.client_kind == "open-loop-constant" else "poisson"
         for interval in intervals:
             run_iter(
                 run_id,
                 args.work_kind,
-                f"open-loop-{interval}",
-                f"--interval-us {interval} --open-loop-mode {mode} --num-threads 1 --runtime-secs {CLIENT_RUNTIME_SECS}",
+                f"open-loop-{kind}-{interval}",
+                f"--runtime-secs {CLIENT_RUNTIME_SECS} open-loop --interval-us {interval} --kind {kind} ",
                 wait_for_port=True,
             )
 
